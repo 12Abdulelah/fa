@@ -41,6 +41,7 @@ def test_predict_500_hides_stack_trace(client_factory, sample_txn, monkeypatch):
 @pytest.mark.integration
 def test_health():
     from fastapi.testclient import TestClient
+
     from fraud_service.api.app import app
     with TestClient(app) as client:
         response = client.get("/v1/health")
@@ -50,6 +51,7 @@ def test_health():
 @pytest.mark.integration
 def test_ready_ok_once_lifespan_has_run():
     from fastapi.testclient import TestClient
+
     from fraud_service.api.app import app
     with TestClient(app) as client:
         response = client.get("/v1/ready")
@@ -61,6 +63,7 @@ def test_ready_503_before_lifespan_runs():
     # a fresh app whose lifespan has never run has no scorer yet —
     # /ready must say so, not silently look ready.
     from fastapi.testclient import TestClient
+
     from fraud_service.api.app import create_app
     client = TestClient(create_app(), raise_server_exceptions=False)
     response = client.get("/v1/ready")
@@ -71,6 +74,7 @@ def test_ready_503_before_lifespan_runs():
 def test_predict_503_before_lifespan_runs(sample_txn):
     # same idea, but through the predict route's get_scorer dependency
     from fastapi.testclient import TestClient
+
     from fraud_service.api.app import create_app
     client = TestClient(create_app(), raise_server_exceptions=False)
     r = client.post("/v1/predict", json=json.loads(sample_txn.model_dump_json()))

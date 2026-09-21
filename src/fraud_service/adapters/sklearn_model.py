@@ -4,13 +4,14 @@ If the team ever moves to ONNX or a remote model server, they add a
 sibling adapter and change one line in the composition root.
 """
 from pathlib import Path
+from typing import Any
 
-import joblib
+import joblib  # type: ignore[import-untyped]
 import pandas as pd
 
 
 class SklearnModel:
-    def __init__(self, pipeline, model_version: str) -> None:
+    def __init__(self, pipeline: Any, model_version: str) -> None:
         self._pipeline = pipeline
         self.model_version = model_version
 
@@ -22,6 +23,6 @@ class SklearnModel:
         bundle = joblib.load(path)  # {"pipeline": ..., "version": "v3.2.0"}
         return cls(bundle["pipeline"], bundle["version"])
 
-    def predict_proba(self, features: dict) -> float:
+    def predict_proba(self, features: dict[str, float]) -> float:
         frame = pd.DataFrame([features])
         return float(self._pipeline.predict_proba(frame)[0, 1])

@@ -6,6 +6,8 @@ thread pool. `async def` here blocks the event loop for every other
 request — this is the #1 cause of "FastAPI is slow" complaints, and
 the trap planted in this lab.
 """
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from fraud_service.api.schemas import HealthResponse, PredictRequest, PredictResponse
@@ -15,7 +17,7 @@ router = APIRouter()
 
 
 def get_scorer(request: Request) -> FraudScorer:
-    scorer = getattr(request.app.state, "scorer", None)
+    scorer: FraudScorer | None = getattr(request.app.state, "scorer", None)
     if scorer is None:
         raise HTTPException(status_code=503, detail="Model not ready",
                              headers={"Retry-After": "5"})
@@ -24,7 +26,7 @@ def get_scorer(request: Request) -> FraudScorer:
 
 @router.post("/predict", response_model=PredictResponse)
 def predict(body: PredictRequest, request: Request,
-            scorer: FraudScorer = Depends(get_scorer)):
+            scorer: FraudScorer = Depends(get_scorer)) -> PredictResponse:  # noqa: B008
     result = scorer.score(body.to_domain())
     return PredictResponse(
         transaction_id=result["transaction_id"],
@@ -36,13 +38,13 @@ def predict(body: PredictRequest, request: Request,
 
 
 @router.get("/health", response_model=HealthResponse)
-def health():
+def health() -> HealthResponse:
     # Liveness: process is up. NO I/O here.
     return HealthResponse(status="ok", service="fraud-service")
 
 
 @router.get("/ready")
-def ready(request: Request):
+def ready(request: Request) -> dict[str, Any]:
     # Readiness: safe to receive traffic. Checks the model is loaded.
     if getattr(request.app.state, "scorer", None) is None:
         raise HTTPException(status_code=503, detail="warming up")

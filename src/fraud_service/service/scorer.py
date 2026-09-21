@@ -4,6 +4,7 @@ Note what is ABSENT here: no FastAPI, no sklearn, no file paths, no
 logging configuration. Pure orchestration = trivially testable.
 """
 from dataclasses import dataclass
+from typing import Any
 
 from fraud_service.domain.entities import Transaction
 from fraud_service.domain.policies import decide
@@ -15,7 +16,7 @@ class FraudScorer:
     model: Model
     block_threshold: float
 
-    def score(self, txn: Transaction) -> dict:
+    def score(self, txn: Transaction) -> dict[str, Any]:
         features = txn.to_features()
         raw_prob = self.model.predict_proba(features.values)
         decision = decide(raw_prob, self.block_threshold)
