@@ -62,7 +62,6 @@ order; this README is just the starting-point map.
 
 ```
 pip install -e ".[dev,api]"
-pip install pytest-cov
 make test              # 52 fast tests, all green
 pytest -m slow         # 3 behavioural tests, all green
 make up && make smoke  # Docker stack, from Lab 3
